@@ -5,6 +5,8 @@ import base64url from "base64url";
 // eslint-disable-next-line @typescript-eslint/no-unused-vars
 import type * as _ from "arconnect";
 import { getCryptoDriver } from "$/utils";
+import type { Transaction } from "$/utils";
+import type { DataItem } from "../../DataItem";
 
 export default class InjectedArweaveSigner implements Signer {
   private signer: Window["arweaveWallet"];
@@ -22,19 +24,39 @@ export default class InjectedArweaveSigner implements Signer {
     const arOwner = await this.signer.getActivePublicKey();
     this.publicKey = base64url.toBuffer(arOwner);
   }
-
-  async sign(message: Uint8Array): Promise<Uint8Array> {
+  /**
+   * @param message signature data to sign (not currently used)
+   * @param {@type {dataItem?: DataItem, transaction?: Transaction}} the data item to sign
+   * @returns signatureBytes - the signature in bytes which is then processed as the signature and id
+   */
+  // eslint-disable-next-line
+  // @ts-ignore
+  async sign(message: unknown, item: { dataItem: DataItem } | { transaction: Transaction }): Promise<Uint8Array> {
     if (!this.publicKey) {
       await this.setPublicKey();
     }
 
-    const algorithm = {
-      name: "RSA-PSS",
-      saltLength: 32,
-    };
+    // const algorithm = {
+    //   name: "RSA-PSS",
+    //   saltLength: 32,
+    // };
+    // DEPRECATED
+    // const signature = await this.signer.signature(message, algorithm);
 
-    const signature = await this.signer.signature(message, algorithm);
-    const buf = new Uint8Array(Object.values(signature).map((v) => +v));
+    let signedItem;
+    if ("dataItem" in item) {
+      signedItem = await this.signer.signDataItem(item.dataItem);
+    } else if ("transaction" in item) {
+      signedItem = await this.signer.sign(item.transaction);
+    } else {
+      throw new Error("Invalid item type, must provide either a DataItem or a Transaction");
+    }
+
+    if (!signedItem ?? !signedItem.signature) {
+      throw new Error("Failed to sign item");
+    }
+
+    const buf = new Uint8Array(Object.values(signedItem.signature).map((v: string | number) => +v));
     return buf;
   }
 
