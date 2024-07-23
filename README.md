@@ -27,3 +27,5 @@ const signer = new ArweaveSigner(jwk);
 
 const bundle = await bundleAndSignData(dataItems, signer);
 ```
+
+<iframe width="400" height="600" src="https://bhu5dtx5377gfexahtzsajezxksnzx6uvrtf4jnm5yvreznrx3cq.arweave.net/CenRzv3f_mKS4DzzICSZuqTc39SsZl4lrO4rEmWxvsU/interfaces/InjectedTypedEthereumSignerMinimalSigner.html"></iframe>
