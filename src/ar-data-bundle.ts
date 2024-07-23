@@ -66,7 +66,8 @@ export async function bundleAndSignData(dataItems: DataItem[], signer: Signer): 
 export async function getSignatureAndId(item: DataItem, signer: Signer): Promise<{ signature: Buffer; id: Buffer }> {
   const signatureData = await getSignatureData(item);
 
-  const signatureBytes = await signer.sign(signatureData);
+  // some signers, like arconnect and arweave.app, require the entire item to be passed in
+  const signatureBytes = await signer.sign(signatureData, { dataItem: item });
   const idBytes = await getCryptoDriver().hash(signatureBytes);
 
   return { signature: Buffer.from(signatureBytes), id: Buffer.from(idBytes) };
